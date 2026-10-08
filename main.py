@@ -34,7 +34,7 @@ async def receive_folder(update: Update, context):
     try:
         saved = await memorizing(update, context)
     except (TelegramError, OSError):
-        # Scaricamento o scrittura su disco falliti: avvisa e chiudi comunque
+        
         saved = False
         await update.message.reply_text(
             "I couldn't save the file (it may be over 20 MB, or the folder name isn't valid)."

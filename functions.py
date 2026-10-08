@@ -3,7 +3,7 @@ from pathlib import Path
 from telegram import Update
 
 
-BASE_FOLDER = Path("filetelegram").resolve()
+BASE_FOLDER = (Path.home() / "Desktop" / "filetelegram").resolve()
 
 
 async def memorizing(update: Update, context) -> bool:
