@@ -8,7 +8,7 @@ BASE_FOLDER = Path("filetelegram").resolve()
 
 async def memorizing(update: Update, context) -> bool:
     
-    if os.environ["OWNERTELE_ID"] != str(update.effective_user.id):
+    if int(os.environ["OWNERTELE_ID"]) != update.effective_user.id:
         await update.message.reply_text("You are not allowed to use this bot!")
         return False
 

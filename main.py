@@ -3,21 +3,23 @@ from dotenv import load_dotenv
 from telegram.ext import Application, CommandHandler , MessageHandler, filters, ConversationHandler
 from telegram import Update
 from functions import memorizing
+from telegram.error import TelegramError
 
 load_dotenv()
 BOT_TOKEN =os.environ["TELEGRAM_TOKEN"]
 FOLDER=0
-
+# START -----------------
 async def start(update: Update, context):
     await update.message.reply_text(
         "Hello! I'm Sinabro, your friendly bot!\nI'm always ready to receive your files!"
     )
-
+# HELP ------------------
 async def help_command(update: Update, context):
     await update.message.reply_text(
         "I can help you keep your files organised! "
-        "Just send me a file and I'll save it in the right folder.\n/delete : to remove file from folder\n/move : to change your cd"
+        "Just send me a file and I'll save it in the right folder.\n/delete : to remove file from folder\n/move : to change your file location"
     )
+
 
 async def receive_file(update: Update, context):
     document = update.message.document
@@ -27,17 +29,23 @@ async def receive_file(update: Update, context):
     return FOLDER
 
 async def receive_folder(update: Update, context):
-    folder = update.message.text
-    file_name = context.user_data["file_name"]
-    await memorizing(update, context)
+    folder_name = update.message.text.strip()
+    file_name= context.user_data["file_name"]
+    try:
+        saved = await memorizing(update, context)
+    except (TelegramError, OSError):
+        # Scaricamento o scrittura su disco falliti: avvisa e chiudi comunque
+        saved = False
+        await update.message.reply_text(
+            "I couldn't save the file (it may be over 20 MB, or the folder name isn't valid)."
+        )
 
-    await update.message.reply_text(f"I'll save {file_name} in {folder}")
-    context.user_data.clear()
+    if saved:
+        await update.message.reply_text(f"Saved {file_name} in {folder_name}!!!")
     return ConversationHandler.END
 
 async def cancel(update: Update, context):
-    context.user_data.clear()
-    await update.message.reply_text("Cancelled.")
+    await update.message.reply_text("Your order has been cancelled.")
     return ConversationHandler.END
 
 
@@ -61,6 +69,6 @@ bot.add_handler(conversazione)
 
 
 
-# start and poll for updates, press CRTL+C to stop
+
 bot.run_polling()
 
