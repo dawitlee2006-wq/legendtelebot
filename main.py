@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from telegram.ext import Application, CommandHandler , MessageHandler, filters, ConversationHandler
 from telegram import Update
+from functions import memorizing
 
 load_dotenv()
 BOT_TOKEN =os.environ["TELEGRAM_TOKEN"]
@@ -9,17 +10,14 @@ FOLDER=0
 
 async def start(update: Update, context):
     await update.message.reply_text(
-        "Hello! I'm Sinabro, your friendly bot!\nI'm ready to receive your files!"
+        "Hello! I'm Sinabro, your friendly bot!\nI'm always ready to receive your files!"
     )
 
 async def help_command(update: Update, context):
     await update.message.reply_text(
         "I can help you keep your files organised! "
-        "Just send me a file and I'll save it in the right folder."
+        "Just send me a file and I'll save it in the right folder.\n/delete : to remove file from folder\n/move : to change your cd"
     )
-
-async def show_id(update: Update, context):
-    await update.message.reply_text(f"Il tuo ID è {update.effective_user.id}")
 
 async def receive_file(update: Update, context):
     document = update.message.document
@@ -31,6 +29,8 @@ async def receive_file(update: Update, context):
 async def receive_folder(update: Update, context):
     folder = update.message.text
     file_name = context.user_data["file_name"]
+    await memorizing(update, context)
+
     await update.message.reply_text(f"I'll save {file_name} in {folder}")
     context.user_data.clear()
     return ConversationHandler.END
@@ -46,7 +46,7 @@ conversazione=ConversationHandler(
     entry_points=[MessageHandler(filters.Document.ALL, receive_file)],
     states={
         FOLDER: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_folder)],
-    }
+    },
     fallbacks=[CommandHandler("cancel", cancel)]
 
 )
@@ -57,7 +57,6 @@ bot = Application.builder().token(BOT_TOKEN).build()
 
 bot.add_handler(CommandHandler("start", start))
 bot.add_handler(CommandHandler("help", help_command))
-bot.add_handler(CommandHandler("id", show_id))
 bot.add_handler(conversazione)
 
 
